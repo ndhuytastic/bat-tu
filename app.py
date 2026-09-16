@@ -464,7 +464,6 @@ def get_bazi_html(year, month, day, hour, minute, gender):
                     if (w.triggers.includes(vietChar)) {{
                         if (!warning_groups[w.category]) warning_groups[w.category] = [];
                         var descHtml = w.desc ? `<br><span style="color:#555;">${{w.desc}}</span>` : "";
-                        // Bỏ dấu ngoặc kép dư thừa ở chữ w.triggers
                         var line = `<b style="color:#222;">${{w.name}}</b> <span style="font-size:13.5px;color:#777;"><i>${{w.triggers}}</i></span>${{descHtml}}`;
                         warning_groups[w.category].push(line);
                         has_warnings = true;
@@ -489,32 +488,47 @@ def get_bazi_html(year, month, day, hour, minute, gender):
             targets = targets.filter(k => k.endsWith('_' + typeA) && state[k]);
 
             var rel_lines = [];
-            var highlightTargets = []; // Mảng chứa id ô cần bôi xám
+            var highlightTargets = []; 
 
-            targets.forEach(posB => {{
-                var charB = state[posB];
-                var labelB = posLabels[posB];
-                var relLabel = "";
+            // ==========================================
+            // LOGIC MỚI: Tách 4 quái Càn, Cấn, Khôn, Tốn thành 2 Chi
+            // ==========================================
+            var evalCharsA = [charA];
+            if (posA === 'DIR_ZHI') {{
+                if (charA === '乾') evalCharsA = ['戌', '亥']; // Càn -> Tuất, Hợi
+                else if (charA === '艮') evalCharsA = ['丑', '寅']; // Cấn -> Sửu, Dần
+                else if (charA === '坤') evalCharsA = ['未', '申']; // Khôn -> Mùi, Thân
+                else if (charA === '巽') evalCharsA = ['辰', '巳']; // Tốn -> Thìn, Tị
+            }}
 
-                if (typeA === 'GAN') {{
-                    if (stem_clash[charA] === charB) relLabel = "Xung";
-                    if (stem_combo[charA] === charB) relLabel = "Lục Hợp";
-                }}
-                else if (typeA === 'ZHI') {{
-                    if (branch_clash[charA] === charB) relLabel = "Xung";
-                    if (branch_combo6[charA] === charB) relLabel = "Lục Hợp";
-                    if (branch_combo3[charA] && branch_combo3[charA].includes(charB)) relLabel = "Tam Hợp";
-                    if (branch_harm[charA] === charB) relLabel = "Hại";
-                    if (branch_punish[charA] && branch_punish[charA].includes(charB)) relLabel = "Hình";
-                }}
+            // Vòng lặp duyệt qua (các) chữ đại diện
+            evalCharsA.forEach(eCharA => {{
+                targets.forEach(posB => {{
+                    var charB = state[posB];
+                    var labelB = posLabels[posB];
+                    var relLabel = "";
 
-                if (relLabel !== "") {{
-                    rel_lines.push({{ cB: charB, rel: relLabel, lB: labelB }});
-                    // Chỉ tô xám nếu là Xung, Tam Hợp, Lục Hợp
-                    if (['Xung', 'Lục Hợp', 'Tam Hợp'].includes(relLabel)) {{
-                        highlightTargets.push(posB);
+                    if (typeA === 'GAN') {{
+                        if (stem_clash[eCharA] === charB) relLabel = "Xung";
+                        if (stem_combo[eCharA] === charB) relLabel = "Lục Hợp";
                     }}
-                }}
+                    else if (typeA === 'ZHI') {{
+                        if (branch_clash[eCharA] === charB) relLabel = "Xung";
+                        if (branch_combo6[eCharA] === charB) relLabel = "Lục Hợp";
+                        if (branch_combo3[eCharA] && branch_combo3[eCharA].includes(charB)) relLabel = "Tam Hợp";
+                        if (branch_harm[eCharA] === charB) relLabel = "Hại";
+                        if (branch_punish[eCharA] && branch_punish[eCharA].includes(charB)) relLabel = "Hình";
+                    }}
+
+                    if (relLabel !== "") {{
+                        // Dùng eCharA thay vì charA để hiển thị chính xác tên Chi tương tác (VD: Tuất - Thìn)
+                        rel_lines.push({{ cA: eCharA, cB: charB, rel: relLabel, lB: labelB }});
+                        // Chỉ tô xám nếu là Xung, Tam Hợp, Lục Hợp
+                        if (['Xung', 'Lục Hợp', 'Tam Hợp'].includes(relLabel)) {{
+                            highlightTargets.push(posB);
+                        }}
+                    }}
+                }});
             }});
 
             // Apply màu nền Xám cho các ô thoả mãn
@@ -532,20 +546,20 @@ def get_bazi_html(year, month, day, hour, minute, gender):
             var toggleWarnBtn = document.getElementById('toggle_warning_btn');
 
             if (rel_lines.length > 0) {{
-                // Căn thẳng hàng bằng Table HTML
+                // LOGIC MỚI: Giảm width và thêm padding để kéo 3 cột sát lại gần nhau
                 let rHtml = `<b>${{charA}} (${{posLabels[posA]}}):</b><table class="rel-tbl">`;
                 rel_lines.forEach(r => {{
                     rHtml += `<tr>
-                        <td style="width: 25%; font-weight: bold;">${{charA}} - ${{r.cB}}</td>
-                        <td style="width: 25%; color: #cc0000; font-weight: bold;">${{r.rel}}</td>
-                        <td style="width: 50%; color: #666;">(${{r.lB}})</td>
+                        <td style="width: 15%; white-space: nowrap; font-weight: bold; padding-right: 15px;">${{r.cA}} - ${{r.cB}}</td>
+                        <td style="width: 15%; white-space: nowrap; color: #cc0000; font-weight: bold; padding-right: 15px;">${{r.rel}}</td>
+                        <td style="width: 70%; color: #666;">(${{r.lB}})</td>
                     </tr>`;
                 }});
                 rHtml += `</table>`;
                 relBox.innerHTML = rHtml;
                 relBox.style.display = 'block';
             }} else {{
-                relBox.innerHTML = `<b>${{charA}} (${{posLabels[posA]}}):</b><br><i style="color:gray; margin-left: 10px;"></i>`;
+                relBox.innerHTML = `<b>${{charA}} (${{posLabels[posA]}}):</b><br><i style="color:gray; margin-left: 10px;">Không có tương tác.</i>`;
                 relBox.style.display = 'block';
             }}
 
