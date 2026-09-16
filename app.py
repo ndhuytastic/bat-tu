@@ -339,7 +339,7 @@ def get_bazi_html(year, month, day, hour, minute, gender):
                 else if (['酉','亥','丑'].includes(state.D_ZHI)) dmSpecial = "丑";
             }}
             if (dmSpecial) {{
-                document.getElementById('d_gan_cell').innerHTML += `<span class="ss-text" style="color: #777;">${{dmSpecial}}</span>`;
+                document.getElementById('d_gan_cell').innerHTML += `<span class="ss-text" style="color: #6b3e1b;">${{dmSpecial}}</span>`;
             }}
 
             // Render Đại Vận, Lưu Niên, Lưu Nguyệt
