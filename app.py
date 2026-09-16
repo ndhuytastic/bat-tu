@@ -266,7 +266,6 @@ def get_bazi_html(year, month, day, hour, minute, gender):
                 let el = S_EL[c] || B_EL[c] || BG_EL[c];
                 if (el) {{
                     elementRawCounts[el] += 1;
-                    // Luật giảm trừ nếu trùng lặp
                     let weight = charCounts[c] >= 2 ? 0.8 : 1.0;
                     elementScores[el] += weight;
                 }}
@@ -299,17 +298,12 @@ def get_bazi_html(year, month, day, hour, minute, gender):
             let el = S_EL[char] || B_EL[char] || BG_EL[char];
             let status = currentYongJi.statuses ? currentYongJi.statuses[el] : 'Dụng';
             
-            // Gán màu sắc: Dụng (Đỏ), Kỵ (Đen), Tiếp cận (Vàng sậm)
+            // Gán màu sắc: Dụng (Đỏ), Kỵ (Đen), Tiếp cận (Vàng sậm để dễ đọc trên nền trắng)
             let color = "#cc0000"; 
             if (status === 'Kỵ') color = "#000000";
             else if (status === 'Tiếp Cận') color = "#d4ac0d"; 
             
             return `<span class="hanzi interactive" style="color: ${{color}};" onclick="checkRel('${{pos}}')">${{char}}</span>`;
-        }}
-
-        function renderYongJiSummary() {{
-            let dung = []; let ky = []; let tiep = [];
-            document.getElementById('yongji_summary').innerHTML = html;
         }}
 
         function renderBoard() {{
