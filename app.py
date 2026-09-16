@@ -72,7 +72,7 @@ BRANCH_ELEM = {
     '寅': 'Mộc', '卯': 'Mộc', '巳': 'Hỏa', '午': 'Hỏa', '申': 'Kim', '酉': 'Kim',
     '亥': 'Thủy', '子': 'Thủy', '辰': 'Thổ', '戌': 'Thổ', '丑': 'Thổ', '未': 'Thổ'
 }
-BAGUA_ELEM = {'乾':'Kim', '坤':'Thổ', '艮':'Thổ', '巽':'Mộc'}
+BAGUA_ELEM = {'乾':'Xám', '坤':'Xám', '艮':'Xám', '巽':'Xám'} # Để nhận diện là Hướng vô hành
 BRANCH_MAIN = {'子':'癸', '丑':'己', '寅':'甲', '卯':'乙', '辰':'戊', '巳':'丙', '午':'丁', '未':'己', '申':'庚', '酉':'辛', '戌':'戊', '亥':'壬'}
 
 # =====================================================================
@@ -125,41 +125,38 @@ def get_bazi_html(year, month, day, hour, minute, gender):
         .bazi-box {{ font-family: Arial, sans-serif; max-width: 1050px; margin: auto; padding: 15px; border: 1px solid #ddd; border-radius: 8px; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.05); color: #333; }}
         
         .bz-tbl {{ width: 100%; border-collapse: collapse; table-layout: fixed; text-align: center; margin-top: 5px; }}
-        .bz-tbl th, .bz-tbl td {{ border: 1px solid #ddd; padding: 5px; }}
+        .bz-tbl th, .bz-tbl td {{ border: 1px solid #ddd; padding: 5px; transition: background-color 0.2s; }}
         .bz-tbl th {{ background: #f4f4f4; font-size: 14px; font-weight: bold; color: #444; }}
         .pillar-col {{ width: 11%; }}
         .spacer-col {{ width: 2%; border-top: none !important; border-bottom: none !important; background-color: #fff !important; }}
         .main-cell {{ position: relative; height: 60px; vertical-align: middle; }}
-        .hanzi {{ font-size: 28px; font-weight: bold; }}
         
-        .interactive {{ cursor: pointer; transition: 0.15s; border-radius: 4px; padding: 0 4px; display: inline-block; }}
-        .interactive:hover {{ background-color: #e0e0e0; transform: scale(1.15); }}
-        .ss-text {{ position: absolute; bottom: 3px; right: 3px; font-size: 11px; color: #777; font-weight: bold; background: rgba(255,255,255,0.8); padding: 1px 3px; border-radius: 3px; pointer-events: none; }}
+        /* Hiệu ứng Highlight màu xám */
+        .highlight-rel {{ background-color: #e5e7e9 !important; box-shadow: inset 0 0 5px rgba(0,0,0,0.1); border: 1.5px solid #999 !important; border-radius: 4px; }}
+        
+        .hanzi {{ font-size: 28px; font-weight: bold; display: inline-block; width: 100%; }}
+        .interactive {{ cursor: pointer; transition: 0.15s; border-radius: 4px; padding: 0 4px; }}
+        .interactive:hover {{ transform: scale(1.15); }}
+        
+        /* CSS Text Thập thần góc dưới */
+        .ss-text {{ position: absolute; bottom: 3px; right: 3px; font-size: 11.5px; font-weight: bold; background: rgba(255,255,255,0.85); padding: 1px 3px; border-radius: 3px; pointer-events: none; }}
 
         .rel-box {{ background-color: #fcfcfc; padding: 15px; border: 1px solid #ddd; border-left: 4px solid #666; font-size: 15px; border-radius: 4px; }}
-        .rel-box ul {{ margin: 10px 0 0 10px; padding: 0; line-height: 1.6; color: #333; list-style-type: none; }}
+        .rel-tbl {{ width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14.5px; }}
+        .rel-tbl td {{ padding: 6px 0; border-bottom: 1px dashed #eee; }}
+        .rel-tbl tr:last-child td {{ border-bottom: none; }}
 
         .warn-box {{ background-color: #fff; padding: 15px; border: 1px solid #ddd; border-left: 4px solid #333; font-size: 15px; border-radius: 4px; transition: 0.3s ease-in-out; }}
         .warn-box ul {{ margin: 10px 0 0 10px; padding: 0; line-height: 1.6; color: #333; list-style-type: none; }}
 
-        .rel-item {{ margin-bottom: 5px; }}
         .warn-item {{ margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px dashed #eee; }}
         .warn-item:last-child {{ border-bottom: none; margin-bottom: 0; padding-bottom: 0; }}
 
         .toggle-warn-btn {{ background-color: #555; color: white; border: none; padding: 10px 15px; font-size: 14px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: background 0.2s; width: 100%; text-align: left; margin-top: 10px; }}
         .toggle-warn-btn:hover {{ background-color: #333; }}
 
-        .dy-btn {{ display: inline-block; padding: 6px 12px; margin: 3px; background: #f0f0f0; cursor: pointer; border-radius: 4px; font-weight:bold; font-size:13px; border: 1px solid #ccc; transition: 0.2s; color: #333; }}
-        .dy-btn:hover, .dy-btn.active {{ background: #dcdcdc; border-color: #aaa; }}
-        
-        .ln-btn {{ display: inline-block; padding: 5px; margin: 2px; background: #fff; cursor: pointer; border: 1px solid #ccc; border-radius: 3px; font-size:12px; transition: 0.2s; color: #333; }}
-        .ln-btn:hover, .ln-btn.active {{ background: #eaeaea; }}
-        
-        .lm-btn {{ display: inline-block; padding: 6px; margin: 3px; background: #fff; cursor: pointer; border: 1px solid #ccc; border-radius: 3px; font-size:14px; font-weight: bold; transition: 0.2s; color: #333; }}
-        .lm-btn:hover, .lm-btn.active {{ background: #eaeaea; }}
-        
-        .dir-btn {{ display: inline-block; padding: 4px 8px; margin: 3px; background: #fff; cursor: pointer; border: 1px solid #ccc; border-radius: 3px; font-size:14px; font-weight: bold; transition: 0.2s; color: #555; }}
-        .dir-btn:hover {{ background: #eaeaea; }}
+        .dy-btn, .ln-btn, .lm-btn, .dir-btn {{ display: inline-block; padding: 6px 10px; margin: 3px; background: #fff; cursor: pointer; border: 1px solid #ccc; border-radius: 4px; font-size:13px; font-weight: bold; transition: 0.2s; color: #333; }}
+        .dy-btn:hover, .ln-btn:hover, .lm-btn:hover, .dir-btn:hover {{ background: #eaeaea; }}
 
         .ld-box {{ margin-top:20px; padding:15px; border:1px solid #ddd; background:#fbfbfb; border-radius:4px; }}
         .section-title {{ font-size: 16px; font-weight: bold; color: #333; margin-bottom: 10px; border-bottom: 1px solid #ddd; padding-bottom: 5px; }}
@@ -172,7 +169,6 @@ def get_bazi_html(year, month, day, hour, minute, gender):
 
         var dm_stem = "{d_stem}";
         
-        // Cập nhật tháng Dương Lịch chuẩn xác
         var branchToMonth = {{'寅':2, '卯':3, '辰':4, '巳':5, '午':6, '未':7, '申':8, '酉':9, '戌':10, '亥':11, '子':12, '丑':1}};
 
         var stem_clash = {{'甲':'庚', '庚':'甲', '乙':'辛', '辛':'乙', '丙':'壬', '壬':'丙', '丁':'癸', '癸':'丁'}};
@@ -214,10 +210,18 @@ def get_bazi_html(year, month, day, hour, minute, gender):
         var B_EL = {json.dumps(BRANCH_ELEM)};
         var BG_EL = {json.dumps(BAGUA_ELEM, ensure_ascii=False)};
         
-        var currentYongJi = {{}}; // Lưu trạng thái Dụng/Kỵ hiện tại của Ngũ Hành
+        // Cấu hình Bảng màu Ngũ Hành cho Can/Chi chính
+        var ELEM_COLORS = {{
+            'Mộc': '#27ae60', // Xanh lá
+            'Hỏa': '#e74c3c', // Đỏ
+            'Thổ': '#6b3e1b', // Nâu đậm
+            'Kim': '#7f8c8d', // Xám
+            'Thủy': '#2980b9' // Xanh dương
+        }};
+
+        var currentYongJi = {{}}; 
         var initialAutoLoadDone = false;
 
-        // Tính Thập Thần
         function calcSS(char) {{
             if (!char) return "";
             if(char === dm_stem) return "Tỷ";
@@ -243,7 +247,6 @@ def get_bazi_html(year, month, day, hour, minute, gender):
             let activeChars = [];
             let charCounts = {{}};
 
-            // Chỉ đếm timeline (không đếm hướng)
             let keys = ['Y_GAN', 'Y_ZHI', 'M_GAN', 'M_ZHI', 'D_GAN', 'D_ZHI', 'H_GAN', 'H_ZHI'];
             if (state.DY_GAN) keys.push('DY_GAN', 'DY_ZHI');
             if (state.LN_GAN) keys.push('LN_GAN', 'LN_ZHI');
@@ -263,7 +266,7 @@ def get_bazi_html(year, month, day, hour, minute, gender):
 
             activeChars.forEach(c => {{
                 let el = S_EL[c] || B_EL[c] || BG_EL[c];
-                if (el) {{
+                if (el && el !== 'Xám') {{
                     elementRawCounts[el] += 1;
                     let weight = charCounts[c] >= 2 ? 0.8 : 1.0;
                     elementScores[el] += weight;
@@ -289,20 +292,29 @@ def get_bazi_html(year, month, day, hour, minute, gender):
                      else if (raw >= threshold && score < threshold) result[el] = 'Tiếp Cận';
                 }}
             }}
-            return {{ statuses: result, totalChars: totalChars, raw: elementRawCounts, score: elementScores, threshold: threshold }};
+            return {{ statuses: result }};
         }}
 
-        function getColoredChar(char, pos) {{
+        // Lấy Màu Ngũ Hành cho Can/Chi Lớn
+        function getMainColor(char) {{
+            let el = S_EL[char] || B_EL[char];
+            return ELEM_COLORS[el] || '#7f8c8d'; // Mặc định Xám cho Càn, Khôn...
+        }}
+
+        // Hiển thị Thập thần nhỏ & Tô màu theo Dụng/Kị
+        function getShishenHTML(char) {{
             if (!char) return "";
-            let el = S_EL[char] || B_EL[char] || BG_EL[char];
-            let status = currentYongJi.statuses ? currentYongJi.statuses[el] : 'Dụng';
+            let ss = calcSS(char);
+            if (!ss) return "";
             
-            // Dụng(Đỏ), Kỵ(Đen), Tiếp cận(Vàng sậm)
-            let color = "#cc0000"; 
-            if (status === 'Kỵ') color = "#000000";
-            else if (status === 'Tiếp Cận') color = "#d4ac0d"; 
+            let el = S_EL[char] || B_EL[char];
+            let status = (currentYongJi.statuses && el) ? currentYongJi.statuses[el] : 'Dụng';
             
-            return `<span class="hanzi interactive" style="color: ${{color}};" onclick="checkRel('${{pos}}')">${{char}}</span>`;
+            let color = "#cc0000"; // Dụng Thần (Đỏ)
+            if (status === 'Kỵ') color = "#000000"; // Kị Thần (Đen)
+            else if (status === 'Tiếp Cận') color = "#d4ac0d"; // Tiếp Cận (Vàng nhạt sậm dễ nhìn)
+            
+            return `<span style="color: ${{color}};">${{ss}}</span>`;
         }}
 
         function renderBoard() {{
@@ -312,14 +324,12 @@ def get_bazi_html(year, month, day, hour, minute, gender):
             ['Y', 'M', 'D', 'H'].forEach(p => {{
                 let gan = state[p+'_GAN']; let zhi = state[p+'_ZHI'];
                 
-                // Ẩn hiển thị Thập thần ở Trụ Ngày (p === 'D')
-                let gan_ss = (p === 'D') ? "" : `<span class="ss-text">${{calcSS(gan)}}</span>`;
-                
-                document.getElementById(p.toLowerCase() + '_gan_cell').innerHTML = getColoredChar(gan, p+'_GAN') + gan_ss;
-                document.getElementById(p.toLowerCase() + '_zhi_cell').innerHTML = getColoredChar(zhi, p+'_ZHI') + `<span class="ss-text">${{calcSS(zhi)}}</span>`;
+                let gan_ss = (p === 'D') ? "" : `<span class="ss-text">${{getShishenHTML(gan)}}</span>`;
+                document.getElementById(p.toLowerCase() + '_gan_cell').innerHTML = `<span class="hanzi interactive" style="color: ${{getMainColor(gan)}};" onclick="checkRel('${{p}}_GAN')">${{gan}}</span>` + gan_ss;
+                document.getElementById(p.toLowerCase() + '_zhi_cell').innerHTML = `<span class="hanzi interactive" style="color: ${{getMainColor(zhi)}};" onclick="checkRel('${{p}}_ZHI')">${{zhi}}</span><span class="ss-text">${{getShishenHTML(zhi)}}</span>`;
             }});
 
-            // Ký tự đặc biệt cho Nhật Chủ Mậu / Kỷ (Vẫn giữ nguyên)
+            // Ký tự đặc biệt cho Nhật Chủ Mậu / Kỷ
             let dmSpecial = "";
             if (state.D_GAN === '戊') {{
                 if (['申','子','辰'].includes(state.D_ZHI)) dmSpecial = "辰";
@@ -328,32 +338,62 @@ def get_bazi_html(year, month, day, hour, minute, gender):
                 if (['卯','巳','未'].includes(state.D_ZHI)) dmSpecial = "未";
                 else if (['酉','亥','丑'].includes(state.D_ZHI)) dmSpecial = "丑";
             }}
-            
             if (dmSpecial) {{
-                document.getElementById('d_gan_cell').innerHTML += `<span class="ss-text" style="color: #555;">${{dmSpecial}}</span>`;
+                document.getElementById('d_gan_cell').innerHTML += `<span class="ss-text" style="color: #777;">${{dmSpecial}}</span>`;
             }}
 
-            // Render Đại Vận
+            // Render Đại Vận, Lưu Niên, Lưu Nguyệt
             if (state.DY_GAN) {{
-                document.getElementById('dy_main_g').innerHTML = getColoredChar(state.DY_GAN, 'DY_GAN') + `<span class="ss-text">${{calcSS(state.DY_GAN)}}</span>`;
-                document.getElementById('dy_main_z').innerHTML = getColoredChar(state.DY_ZHI, 'DY_ZHI') + `<span class="ss-text">${{calcSS(state.DY_ZHI)}}</span>`;
+                document.getElementById('dy_main_g').innerHTML = `<span class="hanzi interactive" style="color: ${{getMainColor(state.DY_GAN)}};" onclick="checkRel('DY_GAN')">${{state.DY_GAN}}</span><span class="ss-text">${{getShishenHTML(state.DY_GAN)}}</span>`;
+                document.getElementById('dy_main_z').innerHTML = `<span class="hanzi interactive" style="color: ${{getMainColor(state.DY_ZHI)}};" onclick="checkRel('DY_ZHI')">${{state.DY_ZHI}}</span><span class="ss-text">${{getShishenHTML(state.DY_ZHI)}}</span>`;
             }}
-            // Render Lưu Niên
             if (state.LN_GAN) {{
-                document.getElementById('ln_main_g').innerHTML = getColoredChar(state.LN_GAN, 'LN_GAN') + `<span class="ss-text">${{calcSS(state.LN_GAN)}}</span>`;
-                document.getElementById('ln_main_z').innerHTML = getColoredChar(state.LN_ZHI, 'LN_ZHI') + `<span class="ss-text">${{calcSS(state.LN_ZHI)}}</span>`;
+                document.getElementById('ln_main_g').innerHTML = `<span class="hanzi interactive" style="color: ${{getMainColor(state.LN_GAN)}};" onclick="checkRel('LN_GAN')">${{state.LN_GAN}}</span><span class="ss-text">${{getShishenHTML(state.LN_GAN)}}</span>`;
+                document.getElementById('ln_main_z').innerHTML = `<span class="hanzi interactive" style="color: ${{getMainColor(state.LN_ZHI)}};" onclick="checkRel('LN_ZHI')">${{state.LN_ZHI}}</span><span class="ss-text">${{getShishenHTML(state.LN_ZHI)}}</span>`;
             }}
-            // Render Lưu Nguyệt
             if (state.LM_GAN) {{
-                document.getElementById('lm_main_g').innerHTML = getColoredChar(state.LM_GAN, 'LM_GAN') + `<span class="ss-text">${{calcSS(state.LM_GAN)}}</span>`;
-                document.getElementById('lm_main_z').innerHTML = getColoredChar(state.LM_ZHI, 'LM_ZHI') + `<span class="ss-text">${{calcSS(state.LM_ZHI)}}</span>`;
+                document.getElementById('lm_main_g').innerHTML = `<span class="hanzi interactive" style="color: ${{getMainColor(state.LM_GAN)}};" onclick="checkRel('LM_GAN')">${{state.LM_GAN}}</span><span class="ss-text">${{getShishenHTML(state.LM_GAN)}}</span>`;
+                document.getElementById('lm_main_z').innerHTML = `<span class="hanzi interactive" style="color: ${{getMainColor(state.LM_ZHI)}};" onclick="checkRel('LM_ZHI')">${{state.LM_ZHI}}</span><span class="ss-text">${{getShishenHTML(state.LM_ZHI)}}</span>`;
             }}
-            // Render Hướng
-            if (state.DIR_GAN) document.getElementById('dir_main_g').innerHTML = getColoredChar(state.DIR_GAN, 'DIR_GAN') + `<span class="ss-text">${{calcSS(state.DIR_GAN)}}</span>`;
-            else if (document.getElementById('dir_main_g')) document.getElementById('dir_main_g').innerHTML = '';
-            
-            if (state.DIR_ZHI) document.getElementById('dir_main_z').innerHTML = getColoredChar(state.DIR_ZHI, 'DIR_ZHI') + `<span class="ss-text">${{calcSS(state.DIR_ZHI)}}</span>`;
-            else if (document.getElementById('dir_main_z')) document.getElementById('dir_main_z').innerHTML = '';
+
+            // ==========================================
+            // Render HƯỚNG ĐẶC BIỆT
+            // ==========================================
+            let dirChar = state.DIR_GAN || state.DIR_ZHI;
+            if (dirChar) {{
+                let pair = [];
+                // Logic Gộp 2 Thập thần
+                if (['辰', '巽'].includes(dirChar)) pair = ['辰', '巳'];
+                else if (dirChar === '巳') pair = ['巳', '辰'];
+                
+                else if (['未', '坤'].includes(dirChar)) pair = ['未', '申'];
+                else if (dirChar === '申') pair = ['申', '未'];
+                
+                else if (['戌', '乾'].includes(dirChar)) pair = ['戌', '亥'];
+                else if (dirChar === '亥') pair = ['亥', '戌'];
+                
+                else if (['丑', '艮'].includes(dirChar)) pair = ['丑', '寅'];
+                else if (dirChar === '寅') pair = ['寅', '丑'];
+                
+                let ssHtml = "";
+                if (pair.length === 2) {{
+                    ssHtml = getShishenHTML(pair[0]) + " - " + getShishenHTML(pair[1]);
+                }} else {{
+                    ssHtml = getShishenHTML(dirChar);
+                }}
+
+                let posStr = state.DIR_GAN ? 'DIR_GAN' : 'DIR_ZHI';
+                let html = `<span class="hanzi interactive" style="color: ${{getMainColor(dirChar)}};" onclick="checkRel('${{posStr}}')">${{dirChar}}</span>`;
+                if (ssHtml) html += `<span class="ss-text">${{ssHtml}}</span>`;
+
+                if (state.DIR_GAN) {{
+                    document.getElementById('dir_main_g').innerHTML = html;
+                    document.getElementById('dir_main_z').innerHTML = '';
+                }} else {{
+                    document.getElementById('dir_main_z').innerHTML = html;
+                    document.getElementById('dir_main_g').innerHTML = '';
+                }}
+            }}
         }}
 
         function toggleWarning() {{
@@ -387,14 +427,33 @@ def get_bazi_html(year, month, day, hour, minute, gender):
                 if (cText) htmlStr += '<div style="color:#444; line-height:1.6; font-size: 14px;">' + cText + '</div>';
                 htmlStr += '</div>';
             }}
-
             contentDiv.innerHTML = htmlStr;
             contentDiv.style.display = 'block';
         }}
 
+        // MAP ID BẢNG ĐỂ ĐỔI MÀU HIGHLIGHT
+        function getCellId(pos) {{
+            if (pos === 'Y_GAN') return 'y_gan_cell'; if (pos === 'Y_ZHI') return 'y_zhi_cell';
+            if (pos === 'M_GAN') return 'm_gan_cell'; if (pos === 'M_ZHI') return 'm_zhi_cell';
+            if (pos === 'D_GAN') return 'd_gan_cell'; if (pos === 'D_ZHI') return 'd_zhi_cell';
+            if (pos === 'H_GAN') return 'h_gan_cell'; if (pos === 'H_ZHI') return 'h_zhi_cell';
+            if (pos === 'DY_GAN') return 'dy_main_g'; if (pos === 'DY_ZHI') return 'dy_main_z';
+            if (pos === 'LN_GAN') return 'ln_main_g'; if (pos === 'LN_ZHI') return 'ln_main_z';
+            if (pos === 'LM_GAN') return 'lm_main_g'; if (pos === 'LM_ZHI') return 'lm_main_z';
+            if (pos === 'DIR_GAN') return 'dir_main_g'; if (pos === 'DIR_ZHI') return 'dir_main_z';
+            return null;
+        }}
+
         function checkRel(posA) {{
+            // Tẩy sạch highlight cũ mỗi lần click
+            document.querySelectorAll('.main-cell').forEach(el => el.classList.remove('highlight-rel'));
+            
             var charA = state[posA];
             if (!charA) return;
+
+            // Highlight chính ô đang bấm
+            var cellA = getCellId(posA);
+            if(cellA && document.getElementById(cellA)) document.getElementById(cellA).classList.add('highlight-rel');
 
             var vietChar = charToViet[charA];
             var warning_groups = {{}};
@@ -405,7 +464,8 @@ def get_bazi_html(year, month, day, hour, minute, gender):
                     if (w.triggers.includes(vietChar)) {{
                         if (!warning_groups[w.category]) warning_groups[w.category] = [];
                         var descHtml = w.desc ? `<br><span style="color:#555;">${{w.desc}}</span>` : "";
-                        var line = `<b style="color:#222;">${{w.name}}</b> <span style="font-size:13px;color:#777;">(<i>${{w.triggers}}</i>)</span>${{descHtml}}`;
+                        // Bỏ dấu ngoặc kép dư thừa ở chữ w.triggers
+                        var line = `<b style="color:#222;">${{w.name}}</b> <span style="font-size:13.5px;color:#777;"><i>${{w.triggers}}</i></span>${{descHtml}}`;
                         warning_groups[w.category].push(line);
                         has_warnings = true;
                     }}
@@ -429,11 +489,12 @@ def get_bazi_html(year, month, day, hour, minute, gender):
             targets = targets.filter(k => k.endsWith('_' + typeA) && state[k]);
 
             var rel_lines = [];
+            var highlightTargets = []; // Mảng chứa id ô cần bôi xám
 
             targets.forEach(posB => {{
                 var charB = state[posB];
                 var labelB = posLabels[posB];
-                var relCategory = ""; var relLabel = "";
+                var relLabel = "";
 
                 if (typeA === 'GAN') {{
                     if (stem_clash[charA] === charB) relLabel = "Xung";
@@ -448,7 +509,19 @@ def get_bazi_html(year, month, day, hour, minute, gender):
                 }}
 
                 if (relLabel !== "") {{
-                    rel_lines.push(`<b>${{charA}}</b> - <b>${{charB}}</b> &nbsp;&nbsp; ${{relLabel}} &nbsp;&nbsp; (${{labelB}})`);
+                    rel_lines.push({{ cB: charB, rel: relLabel, lB: labelB }});
+                    // Chỉ tô xám nếu là Xung, Tam Hợp, Lục Hợp
+                    if (['Xung', 'Lục Hợp', 'Tam Hợp'].includes(relLabel)) {{
+                        highlightTargets.push(posB);
+                    }}
+                }}
+            }});
+
+            // Apply màu nền Xám cho các ô thoả mãn
+            highlightTargets.forEach(posB => {{
+                let cId = getCellId(posB);
+                if(cId && document.getElementById(cId)) {{
+                    document.getElementById(cId).classList.add('highlight-rel');
                 }}
             }});
 
@@ -459,7 +532,17 @@ def get_bazi_html(year, month, day, hour, minute, gender):
             var toggleWarnBtn = document.getElementById('toggle_warning_btn');
 
             if (rel_lines.length > 0) {{
-                relBox.innerHTML = `<b>${{charA}} (${{posLabels[posA]}}):</b><ul>` + rel_lines.map(r => `<li class="rel-item">${{r}}</li>`).join('') + `</ul>`;
+                // Căn thẳng hàng bằng Table HTML
+                let rHtml = `<b>${{charA}} (${{posLabels[posA]}}):</b><table class="rel-tbl">`;
+                rel_lines.forEach(r => {{
+                    rHtml += `<tr>
+                        <td style="width: 25%; font-weight: bold;">${{charA}} - ${{r.cB}}</td>
+                        <td style="width: 25%; color: #cc0000; font-weight: bold;">${{r.rel}}</td>
+                        <td style="width: 50%; color: #666;">(${{r.lB}})</td>
+                    </tr>`;
+                }});
+                rHtml += `</table>`;
+                relBox.innerHTML = rHtml;
                 relBox.style.display = 'block';
             }} else {{
                 relBox.innerHTML = `<b>${{charA}} (${{posLabels[posA]}}):</b><br><i style="color:gray; margin-left: 10px;">Không có tương tác.</i>`;
@@ -491,6 +574,9 @@ def get_bazi_html(year, month, day, hour, minute, gender):
             state.DIR_ZHI = (!isStem || isBagua) ? char : null;
 
             renderBoard();
+            
+            // Tẩy highlight và giấu interaction khi bấm nút chọn Hướng mới
+            document.querySelectorAll('.main-cell').forEach(el => el.classList.remove('highlight-rel'));
             document.getElementById('interaction_container').style.display = 'none';
         }}
 
@@ -514,6 +600,8 @@ def get_bazi_html(year, month, day, hour, minute, gender):
             }});
             document.getElementById('ln_container').innerHTML = lnHtml;
             document.getElementById('lm_container').style.display = 'none';
+            
+            document.querySelectorAll('.main-cell').forEach(el => el.classList.remove('highlight-rel'));
             document.getElementById('interaction_container').style.display = 'none';
             
             renderBoard();
@@ -528,6 +616,7 @@ def get_bazi_html(year, month, day, hour, minute, gender):
             ['col_lm', 'lm_main_g', 'lm_main_z'].forEach(id => document.getElementById(id).style.display = 'none');
 
             document.getElementById('ln_title').innerHTML = 'Năm ' + ln.year;
+            document.querySelectorAll('.main-cell').forEach(el => el.classList.remove('highlight-rel'));
             document.getElementById('interaction_container').style.display = 'none';
 
             var yearStemIdx = stems_arr.indexOf(ln.gan);
@@ -565,6 +654,7 @@ def get_bazi_html(year, month, day, hour, minute, gender):
             ['col_lm', 'lm_main_g', 'lm_main_z'].forEach(id => document.getElementById(id).style.display = 'table-cell');
 
             document.getElementById('lm_title').innerHTML = 'Tháng ' + monthNum;
+            document.querySelectorAll('.main-cell').forEach(el => el.classList.remove('highlight-rel'));
             document.getElementById('interaction_container').style.display = 'none';
             
             renderBoard();
