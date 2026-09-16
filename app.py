@@ -11,9 +11,9 @@ from datetime import datetime
 st.set_page_config(page_title="Bát Tự Trụ Cột", layout="wide")
 
 # ==========================================
-# 1. TẢI DỮ LIỆU TỪ GOOGLE SHEETS (Dùng cache của Streamlit để tăng tốc)
+# 1. TẢI DỮ LIỆU TỪ GOOGLE SHEETS
 # ==========================================
-@st.cache_data(ttl=3600) # Cache dữ liệu trong 1 giờ
+@st.cache_data(ttl=3600)
 def load_google_sheets():
     warnings_list = []
     SHEET_WARNINGS_URL = "https://docs.google.com/spreadsheets/d/12Mq8O7AhR4BCJc_vw3GzRNhjpQp7j53DgJbHY-xyQ34/export?format=csv&gid=0"
@@ -32,7 +32,7 @@ def load_google_sheets():
                     "category": than_a, "name": quan_he, "triggers": than_b, "desc": y_nghia
                 })
     except Exception as e:
-        st.warning(f"Lưu ý: Không thể tải dữ liệu Chú Ý ({e}).")
+        pass
 
     luandoan_data = {}
     SHEET_LUANDOAN_URL = "https://docs.google.com/spreadsheets/d/12Mq8O7AhR4BCJc_vw3GzRNhjpQp7j53DgJbHY-xyQ34/export?format=csv&gid=684903381"
@@ -55,11 +55,10 @@ def load_google_sheets():
                 if colB or colC:
                     luandoan_data[current_topic].append({"B": colB, "C": colC})
     except Exception as e:
-        st.warning(f"Lưu ý: Không thể tải dữ liệu Bảng Luận Đoán ({e}).")
+        pass
 
     return warnings_list, luandoan_data
 
-# Khởi tạo dữ liệu
 warnings_list, luandoan_data = load_google_sheets()
 
 # ==========================================
@@ -74,38 +73,7 @@ BRANCH_ELEM = {
     '亥': 'Thủy', '子': 'Thủy', '辰': 'Thổ', '戌': 'Thổ', '丑': 'Thổ', '未': 'Thổ'
 }
 BAGUA_ELEM = {'乾':'Kim', '坤':'Thổ', '艮':'Thổ', '巽':'Mộc'}
-
 BRANCH_MAIN = {'子':'癸', '丑':'己', '寅':'甲', '卯':'乙', '辰':'戊', '巳':'丙', '午':'丁', '未':'己', '申':'庚', '酉':'辛', '戌':'戊', '亥':'壬'}
-
-ELEM_COLOR = {
-    'Mộc': '#27ae60', 'Hỏa': '#e74c3c', 'Thổ': '#8b4513', 'Kim': '#7f8c8d', 'Thủy': '#2980b9'
-}
-
-def get_elem(char):
-    if char in STEM_ELEM: return STEM_ELEM[char]
-    if char in BRANCH_ELEM: return BRANCH_ELEM[char]
-    if char in BAGUA_ELEM: return BAGUA_ELEM[char]
-    return ""
-
-def get_c_char(char, pos):
-    if not char: return ""
-    el = get_elem(char)
-    color = ELEM_COLOR.get(el, "black")
-    return f'<span class="hanzi interactive" style="color: {color};" onclick="checkRel(\'{pos}\')">{char}</span>'
-
-def get_shishen(dm, char):
-    if not char or not dm: return ""
-    if char == dm: return "Tỷ"
-    dm_el = STEM_ELEM.get(dm, "")
-    char_el_direct = get_elem(char)
-    if dm_el == char_el_direct: return "Kiếp"
-    eval_char = BRANCH_MAIN.get(char, char)
-    char_el = STEM_ELEM.get(eval_char, char_el_direct)
-    if (dm_el=='Mộc' and char_el=='Hỏa') or (dm_el=='Hỏa' and char_el=='Thổ') or (dm_el=='Thổ' and char_el=='Kim') or (dm_el=='Kim' and char_el=='Thủy') or (dm_el=='Thủy' and char_el=='Mộc'): return "Thực"
-    if (char_el=='Mộc' and dm_el=='Hỏa') or (char_el=='Hỏa' and dm_el=='Thổ') or (char_el=='Thổ' and dm_el=='Kim') or (char_el=='Kim' and dm_el=='Thủy') or (char_el=='Thủy' and dm_el=='Mộc'): return "Ấn"
-    if (dm_el=='Mộc' and char_el=='Thổ') or (dm_el=='Thổ' and char_el=='Thủy') or (dm_el=='Thủy' and char_el=='Hỏa') or (dm_el=='Hỏa' and char_el=='Kim') or (dm_el=='Kim' and char_el=='Mộc'): return "Tài"
-    if (char_el=='Mộc' and dm_el=='Thổ') or (char_el=='Thổ' and dm_el=='Thủy') or (char_el=='Thủy' and dm_el=='Hỏa') or (char_el=='Hỏa' and dm_el=='Kim') or (char_el=='Kim' and dm_el=='Mộc'): return "Quan"
-    return ""
 
 # =====================================================================
 # HÀM RENDER HTML & XỬ LÝ GIAO DIỆN
@@ -130,16 +98,23 @@ def get_bazi_html(year, month, day, hour, minute, gender):
     dirs = ['甲', '乙', '丙', '丁', '庚', '辛', '壬', '癸', '子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥', '乾', '坤', '艮', '巽']
     dir_html = "".join([f"<div class='dir-btn' onclick=\"loadDir('{c}')\">{c}</div>" for c in dirs])
 
-    # --- LOGIC XỬ LÝ NHẬT CHỦ MẬU/KỶ ĐẶC BIỆT ---
-    dm_special = ""
-    if d_stem == '戊':
-        if d_branch in ['申', '子', '辰']: dm_special = "辰"
-        elif d_branch in ['寅', '午', '戌']: dm_special = "戌"
-    elif d_stem == '己':
-        if d_branch in ['卯', '巳', '未']: dm_special = "未"
-        elif d_branch in ['酉', '亥', '丑']: dm_special = "丑"
+    # --- LOGIC TÌM THỜI ĐIỂM HIỆN TẠI ĐỂ AUTO-LOAD ---
+    now = datetime.now()
+    now_solar = Solar.fromYmdHms(now.year, now.month, now.day, now.hour, now.minute, 0)
+    now_bazi = now_solar.getLunar().getEightChar()
+    active_dy_idx = "-1"
+    active_ln_idx = "-1"
+    active_lm_branch = now_bazi.getMonthZhi()
 
-    dm_special_html = f'<span class="ss-text" style="color: #8e44ad; font-size: 13px;">{dm_special}</span>' if dm_special else ""
+    for i, dy in enumerate(da_yuns[1:9]):
+        start_y = dy.getStartYear()
+        if start_y <= now.year < start_y + 10:
+            active_dy_idx = str(i)
+            for j, ln in enumerate(dy.getLiuNian()):
+                if ln.getYear() == now.year:
+                    active_ln_idx = str(j)
+                    break
+            break
 
     ld_options = '<option value="">-- Chọn Hạng Mục --</option>'
     for key in luandoan_data.keys():
@@ -147,42 +122,49 @@ def get_bazi_html(year, month, day, hour, minute, gender):
 
     html_content = f"""
     <style>
-        .bazi-box {{ font-family: Arial; max-width: 1050px; margin: auto; padding: 15px; border: 1px solid #ddd; border-radius: 8px; background: #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }}
-        .bz-tbl {{ width: 100%; border-collapse: collapse; table-layout: fixed; text-align: center; margin-top: 10px; }}
-        .bz-tbl th, .bz-tbl td {{ border: 1px solid #ccc; padding: 5px; }}
-        .bz-tbl th {{ background: #f2f2f2; font-size: 14px; font-weight: bold; }}
+        .bazi-box {{ font-family: Arial, sans-serif; max-width: 1050px; margin: auto; padding: 15px; border: 1px solid #ddd; border-radius: 8px; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.05); color: #333; }}
+        
+        .yj-summary {{ margin-bottom: 15px; padding: 12px; background: #f9f9f9; border: 1px solid #e0e0e0; border-radius: 4px; font-size: 14px; line-height: 1.5; }}
+        
+        .bz-tbl {{ width: 100%; border-collapse: collapse; table-layout: fixed; text-align: center; margin-top: 5px; }}
+        .bz-tbl th, .bz-tbl td {{ border: 1px solid #ddd; padding: 5px; }}
+        .bz-tbl th {{ background: #f4f4f4; font-size: 14px; font-weight: bold; color: #444; }}
         .pillar-col {{ width: 11%; }}
         .spacer-col {{ width: 2%; border-top: none !important; border-bottom: none !important; background-color: #fff !important; }}
         .main-cell {{ position: relative; height: 60px; vertical-align: middle; }}
         .hanzi {{ font-size: 28px; font-weight: bold; }}
-        .dm-hl {{ background-color: #fcf3cf; border-radius: 4px; padding: 2px 5px; display: inline-block; }}
+        
         .interactive {{ cursor: pointer; transition: 0.15s; border-radius: 4px; padding: 0 4px; display: inline-block; }}
-        .interactive:hover {{ background-color: #f39c12; color: #fff !important; transform: scale(1.15); box-shadow: 0 2px 5px rgba(0,0,0,0.2); }}
-        .ss-text {{ position: absolute; bottom: 3px; right: 3px; font-size: 11px; color: #7f8c8d; font-weight: bold; background: rgba(255,255,255,0.8); padding: 1px 3px; border-radius: 3px; pointer-events: none; }}
+        .interactive:hover {{ background-color: #e0e0e0; transform: scale(1.15); }}
+        .ss-text {{ position: absolute; bottom: 3px; right: 3px; font-size: 11px; color: #777; font-weight: bold; background: rgba(255,255,255,0.8); padding: 1px 3px; border-radius: 3px; pointer-events: none; }}
 
-        .rel-box {{ background-color: #ffffff; padding: 15px; border: 1px solid #ddd; border-left: 5px solid #27ae60; font-size: 15px; border-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }}
-        .rel-box ul {{ margin: 10px 0 0 10px; padding: 0; line-height: 1.6; color: #1e8449; list-style-type: none; }}
+        .rel-box {{ background-color: #fcfcfc; padding: 15px; border: 1px solid #ddd; border-left: 4px solid #666; font-size: 15px; border-radius: 4px; }}
+        .rel-box ul {{ margin: 10px 0 0 10px; padding: 0; line-height: 1.6; color: #333; list-style-type: none; }}
 
-        .warn-box {{ background-color: #fdfefe; padding: 15px; border: 1px solid #ddd; border-left: 5px solid #c0392b; font-size: 15px; border-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: 0.3s ease-in-out; }}
+        .warn-box {{ background-color: #fff; padding: 15px; border: 1px solid #ddd; border-left: 4px solid #333; font-size: 15px; border-radius: 4px; transition: 0.3s ease-in-out; }}
         .warn-box ul {{ margin: 10px 0 0 10px; padding: 0; line-height: 1.6; color: #333; list-style-type: none; }}
 
         .rel-item {{ margin-bottom: 5px; }}
         .warn-item {{ margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px dashed #eee; }}
         .warn-item:last-child {{ border-bottom: none; margin-bottom: 0; padding-bottom: 0; }}
 
-        .toggle-warn-btn {{ background-color: #e74c3c; color: white; border: none; padding: 10px 15px; font-size: 15px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: background 0.2s; width: 100%; text-align: left; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-top: 10px; }}
-        .toggle-warn-btn:hover {{ background-color: #c0392b; }}
+        .toggle-warn-btn {{ background-color: #555; color: white; border: none; padding: 10px 15px; font-size: 14px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: background 0.2s; width: 100%; text-align: left; margin-top: 10px; }}
+        .toggle-warn-btn:hover {{ background-color: #333; }}
 
-        .dy-btn {{ display: inline-block; padding: 5px 10px; margin: 3px; background: #e0e0e0; cursor: pointer; border-radius: 4px; font-weight:bold; font-size:13px; border: 1px solid #ccc; transition: 0.2s; }}
-        .dy-btn:hover {{ background: #c0c0c0; }}
-        .ln-btn {{ display: inline-block; padding: 4px; margin: 2px; background: #f0f8ff; cursor: pointer; border: 1px solid #add8e6; border-radius: 3px; font-size:12px; transition: 0.2s; }}
-        .ln-btn:hover {{ background: #d0e8f0; }}
-        .lm-btn {{ display: inline-block; padding: 6px; margin: 3px; background: #f5eef8; cursor: pointer; border: 1px solid #d2b4de; border-radius: 3px; font-size:14px; font-weight: bold; transition: 0.2s; }}
-        .lm-btn:hover {{ background: #e8daef; }}
-        .dir-btn {{ display: inline-block; padding: 4px 8px; margin: 3px; background: #fdf2e9; cursor: pointer; border: 1px solid #e67e22; border-radius: 3px; font-size:14px; font-weight: bold; transition: 0.2s; color: #d35400; }}
-        .dir-btn:hover {{ background: #fae5d3; }}
+        .dy-btn {{ display: inline-block; padding: 6px 12px; margin: 3px; background: #f0f0f0; cursor: pointer; border-radius: 4px; font-weight:bold; font-size:13px; border: 1px solid #ccc; transition: 0.2s; color: #333; }}
+        .dy-btn:hover, .dy-btn.active {{ background: #dcdcdc; border-color: #aaa; }}
+        
+        .ln-btn {{ display: inline-block; padding: 5px; margin: 2px; background: #fff; cursor: pointer; border: 1px solid #ccc; border-radius: 3px; font-size:12px; transition: 0.2s; color: #333; }}
+        .ln-btn:hover, .ln-btn.active {{ background: #eaeaea; }}
+        
+        .lm-btn {{ display: inline-block; padding: 6px; margin: 3px; background: #fff; cursor: pointer; border: 1px solid #ccc; border-radius: 3px; font-size:14px; font-weight: bold; transition: 0.2s; color: #333; }}
+        .lm-btn:hover, .lm-btn.active {{ background: #eaeaea; }}
+        
+        .dir-btn {{ display: inline-block; padding: 4px 8px; margin: 3px; background: #fff; cursor: pointer; border: 1px solid #ccc; border-radius: 3px; font-size:14px; font-weight: bold; transition: 0.2s; color: #555; }}
+        .dir-btn:hover {{ background: #eaeaea; }}
 
-        .ld-box {{ margin-top:20px; padding:15px; border:1px solid #ddd; border-left: 5px solid #2980b9; background:#f4f9fd; border-radius:4px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }}
+        .ld-box {{ margin-top:20px; padding:15px; border:1px solid #ddd; background:#fbfbfb; border-radius:4px; }}
+        .section-title {{ font-size: 16px; font-weight: bold; color: #333; margin-bottom: 10px; border-bottom: 1px solid #ddd; padding-bottom: 5px; }}
     </style>
 
     <script>
@@ -191,6 +173,8 @@ def get_bazi_html(year, month, day, hour, minute, gender):
         var ld_data = {json.dumps(luandoan_data, ensure_ascii=False)};
 
         var dm_stem = "{d_stem}";
+        
+        var branchToMonth = {{'寅':1, '卯':2, '辰':3, '巳':4, '午':5, '未':6, '申':7, '酉':8, '戌':9, '亥':10, '子':11, '丑':12}};
 
         var stem_clash = {{'甲':'庚', '庚':'甲', '乙':'辛', '辛':'乙', '丙':'壬', '壬':'丙', '丁':'癸', '癸':'丁'}};
         var stem_combo = {{'甲':'己', '己':'甲', '乙':'庚', '庚':'乙', '丙':'辛', '辛':'丙', '丁':'壬', '壬':'丁', '戊':'癸', '癸':'戊'}};
@@ -230,22 +214,19 @@ def get_bazi_html(year, month, day, hour, minute, gender):
         var S_EL = {json.dumps(STEM_ELEM)};
         var B_EL = {json.dumps(BRANCH_ELEM)};
         var BG_EL = {json.dumps(BAGUA_ELEM, ensure_ascii=False)};
-        var ELEM_COLOR = {json.dumps(ELEM_COLOR)};
+        
+        var currentYongJi = {{}}; // Lưu trạng thái Dụng/Kỵ hiện tại của Ngũ Hành
+        var initialAutoLoadDone = false;
 
-        function getColor(char) {{ return ELEM_COLOR[S_EL[char] || B_EL[char] || BG_EL[char] || ""] || "black"; }}
-        function getColoredChar(char, pos) {{ return '<span class="hanzi interactive" style="color: ' + getColor(char) + ';" onclick="checkRel(\\'' + pos + '\\')">' + char + '</span>'; }}
-
+        // Tính Thập Thần
         function calcSS(char) {{
             if (!char) return "";
             if(char === dm_stem) return "Tỷ";
-
             var dmE = S_EL[dm_stem];
             var charE_direct = S_EL[char] || B_EL[char] || BG_EL[char];
             if(dmE === charE_direct) return "Kiếp";
-
             var eval_char = BRANCH_M[char] ? BRANCH_M[char] : char;
             var chE = S_EL[eval_char] || charE_direct;
-
             if (!chE) return "";
             var prod = {{"Mộc":"Hỏa","Hỏa":"Thổ","Thổ":"Kim","Kim":"Thủy","Thủy":"Mộc"}};
             var ctrl = {{"Mộc":"Thổ","Thổ":"Thủy","Thủy":"Hỏa","Hỏa":"Kim","Kim":"Mộc"}};
@@ -256,19 +237,151 @@ def get_bazi_html(year, month, day, hour, minute, gender):
             return "";
         }}
 
+        // ==========================================
+        // THUẬT TOÁN ĐẾM DỤNG THẦN - KỊ THẦN
+        // ==========================================
+        function evaluateElements() {{
+            let activeChars = [];
+            let charCounts = {{}};
+
+            // Chỉ đếm timeline (không đếm hướng)
+            let keys = ['Y_GAN', 'Y_ZHI', 'M_GAN', 'M_ZHI', 'D_GAN', 'D_ZHI', 'H_GAN', 'H_ZHI'];
+            if (state.DY_GAN) keys.push('DY_GAN', 'DY_ZHI');
+            if (state.LN_GAN) keys.push('LN_GAN', 'LN_ZHI');
+            if (state.LM_GAN) keys.push('LM_GAN', 'LM_ZHI');
+
+            keys.forEach(k => {{
+                let c = state[k];
+                if (c) {{
+                    activeChars.push(c);
+                    charCounts[c] = (charCounts[c] || 0) + 1;
+                }}
+            }});
+
+            let totalChars = activeChars.length;
+            let elementRawCounts = {{ 'Mộc': 0, 'Hỏa': 0, 'Thổ': 0, 'Kim': 0, 'Thủy': 0 }};
+            let elementScores = {{ 'Mộc': 0, 'Hỏa': 0, 'Thổ': 0, 'Kim': 0, 'Thủy': 0 }};
+
+            activeChars.forEach(c => {{
+                let el = S_EL[c] || B_EL[c] || BG_EL[c];
+                if (el) {{
+                    elementRawCounts[el] += 1;
+                    // Luật giảm trừ nếu trùng lặp
+                    let weight = charCounts[c] >= 2 ? 0.8 : 1.0;
+                    elementScores[el] += weight;
+                }}
+            }});
+
+            let threshold = 3;
+            if (totalChars === 10) threshold = 4;
+            else if (totalChars === 12) threshold = 4;
+            else if (totalChars === 14) threshold = 5;
+
+            let result = {{}};
+            for (let el in elementRawCounts) {{
+                let raw = elementRawCounts[el];
+                let score = elementScores[el];
+
+                if (totalChars <= 10) {{
+                     if (raw >= threshold) result[el] = 'Kỵ';
+                     else result[el] = 'Dụng';
+                }} else {{
+                     // Quy tắc tiếp cận Kị Thần cho LN, LM
+                     if (raw < threshold) result[el] = 'Dụng';
+                     else if (raw >= threshold && score >= threshold) result[el] = 'Kỵ';
+                     else if (raw >= threshold && score < threshold) result[el] = 'Tiếp Cận';
+                }}
+            }}
+            return {{ statuses: result, totalChars: totalChars, raw: elementRawCounts, score: elementScores, threshold: threshold }};
+        }}
+
+        function getColoredChar(char, pos) {{
+            if (!char) return "";
+            let el = S_EL[char] || B_EL[char] || BG_EL[char];
+            let status = currentYongJi.statuses ? currentYongJi.statuses[el] : 'Dụng';
+            
+            // Dụng Thần màu Đỏ, Kị Thần và Tiếp Cận Kị Thần màu Đen
+            let color = (status === 'Dụng') ? "#cc0000" : "#000000";
+            
+            return `<span class="hanzi interactive" style="color: ${{color}};" onclick="checkRel('${{pos}}')">${{char}}</span>`;
+        }}
+
+        function renderYongJiSummary() {{
+            let dung = []; let ky = []; let tiep = [];
+            for (let el in currentYongJi.statuses) {{
+                if (currentYongJi.statuses[el] === 'Dụng') dung.push(el);
+                else if (currentYongJi.statuses[el] === 'Kỵ') ky.push(el);
+                else if (currentYongJi.statuses[el] === 'Tiếp Cận') tiep.push(el);
+            }}
+
+            let html = `<b>Tình trạng Ngũ Hành:</b> Đang xét <b>${{currentYongJi.totalChars}}</b> chữ (Ngưỡng Kị thần: <b>&ge;${{currentYongJi.threshold}}</b>)<br>`;
+            html += `<span style="color: #cc0000; font-weight: bold;">Dụng Thần:</span> ${{dung.length ? dung.join(', ') : 'Không có'}}<br>`;
+            html += `<span style="color: #000000; font-weight: bold;">Kị Thần:</span> ${{ky.length ? ky.join(', ') : 'Không có'}}<br>`;
+            if (tiep.length > 0) {{
+                html += `<span style="color: #000000; font-weight: bold;">Tiếp Cận Kị Thần:</span> ${{tiep.join(', ')}} <i>(Bị trừ điểm trùng lặp nên chưa bùng phát)</i>`;
+            }}
+            document.getElementById('yongji_summary').innerHTML = html;
+        }}
+
+        function renderBoard() {{
+            currentYongJi = evaluateElements();
+            renderYongJiSummary();
+
+            // Render 4 Trụ (Nguyên Mệnh)
+            ['Y', 'M', 'D', 'H'].forEach(p => {{
+                let gan = state[p+'_GAN']; let zhi = state[p+'_ZHI'];
+                document.getElementById(p.toLowerCase() + '_gan_cell').innerHTML = getColoredChar(gan, p+'_GAN') + `<span class="ss-text">${{calcSS(gan)}}</span>`;
+                document.getElementById(p.toLowerCase() + '_zhi_cell').innerHTML = getColoredChar(zhi, p+'_ZHI') + `<span class="ss-text">${{calcSS(zhi)}}</span>`;
+            }});
+
+            // Ký tự đặc biệt cho Nhật Chủ Mậu / Kỷ
+            let dmSpecial = "";
+            if (state.D_GAN === '戊') {{
+                if (['申','子','辰'].includes(state.D_ZHI)) dmSpecial = "辰";
+                else if (['寅','午','戌'].includes(state.D_ZHI)) dmSpecial = "戌";
+            }} else if (state.D_GAN === '己') {{
+                if (['卯','巳','未'].includes(state.D_ZHI)) dmSpecial = "未";
+                else if (['酉','亥','丑'].includes(state.D_ZHI)) dmSpecial = "丑";
+            }}
+            if (dmSpecial) {{
+                document.getElementById('d_gan_cell').innerHTML += `<span class="ss-text" style="color: #555;">${{dmSpecial}}</span>`;
+            }}
+
+            // Render Đại Vận
+            if (state.DY_GAN) {{
+                document.getElementById('dy_main_g').innerHTML = getColoredChar(state.DY_GAN, 'DY_GAN') + `<span class="ss-text">${{calcSS(state.DY_GAN)}}</span>`;
+                document.getElementById('dy_main_z').innerHTML = getColoredChar(state.DY_ZHI, 'DY_ZHI') + `<span class="ss-text">${{calcSS(state.DY_ZHI)}}</span>`;
+            }}
+            // Render Lưu Niên
+            if (state.LN_GAN) {{
+                document.getElementById('ln_main_g').innerHTML = getColoredChar(state.LN_GAN, 'LN_GAN') + `<span class="ss-text">${{calcSS(state.LN_GAN)}}</span>`;
+                document.getElementById('ln_main_z').innerHTML = getColoredChar(state.LN_ZHI, 'LN_ZHI') + `<span class="ss-text">${{calcSS(state.LN_ZHI)}}</span>`;
+            }}
+            // Render Lưu Nguyệt
+            if (state.LM_GAN) {{
+                document.getElementById('lm_main_g').innerHTML = getColoredChar(state.LM_GAN, 'LM_GAN') + `<span class="ss-text">${{calcSS(state.LM_GAN)}}</span>`;
+                document.getElementById('lm_main_z').innerHTML = getColoredChar(state.LM_ZHI, 'LM_ZHI') + `<span class="ss-text">${{calcSS(state.LM_ZHI)}}</span>`;
+            }}
+            // Render Hướng
+            if (state.DIR_GAN) document.getElementById('dir_main_g').innerHTML = getColoredChar(state.DIR_GAN, 'DIR_GAN') + `<span class="ss-text">${{calcSS(state.DIR_GAN)}}</span>`;
+            else if (document.getElementById('dir_main_g')) document.getElementById('dir_main_g').innerHTML = '';
+            
+            if (state.DIR_ZHI) document.getElementById('dir_main_z').innerHTML = getColoredChar(state.DIR_ZHI, 'DIR_ZHI') + `<span class="ss-text">${{calcSS(state.DIR_ZHI)}}</span>`;
+            else if (document.getElementById('dir_main_z')) document.getElementById('dir_main_z').innerHTML = '';
+        }}
+
         function toggleWarning() {{
             var content = document.getElementById('warning_content');
             var btn = document.getElementById('toggle_warning_btn');
             if (content.style.display === 'none') {{
                 content.style.display = 'block';
-                btn.innerHTML = '⚠️ Chú Ý ▲';
+                btn.innerHTML = 'Tuyến Khí ▲';
             }} else {{
                 content.style.display = 'none';
-                btn.innerHTML = '⚠️ Chú Ý ▼';
+                btn.innerHTML = 'Tuyến Khí ▼';
             }}
         }}
 
-        // Cập nhật hiển thị Bảng luận đoán (Tĩnh)
         function updateLuandoan() {{
             var sel = document.getElementById('ld_select').value;
             var contentDiv = document.getElementById('ld_content');
@@ -284,12 +397,8 @@ def get_bazi_html(year, month, day, hour, minute, gender):
                 var cText = ld_data[sel][i].C ? ld_data[sel][i].C.replace(/\\n/g, '<br>') : '';
 
                 htmlStr += '<div style="margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px dashed #eee;">';
-                if (bText) {{
-                    htmlStr += '<div style="font-weight:bold; font-size:15px; color:#c0392b; margin-bottom:4px;">' + bText + '</div>';
-                }}
-                if (cText) {{
-                    htmlStr += '<div style="color:#333; line-height:1.6; font-size: 14px;">' + cText + '</div>';
-                }}
+                if (bText) htmlStr += '<div style="font-weight:bold; font-size:15px; color:#333; margin-bottom:4px;">' + bText + '</div>';
+                if (cText) htmlStr += '<div style="color:#444; line-height:1.6; font-size: 14px;">' + cText + '</div>';
                 htmlStr += '</div>';
             }}
 
@@ -308,11 +417,9 @@ def get_bazi_html(year, month, day, hour, minute, gender):
             if (vietChar) {{
                 warnings_data.forEach(w => {{
                     if (w.triggers.includes(vietChar)) {{
-                        if (!warning_groups[w.category]) {{
-                            warning_groups[w.category] = [];
-                        }}
-                        var descHtml = w.desc ? `<br><span style="color:#333;">${{w.desc}}</span>` : "";
-                        var line = `<b style="color:#c0392b;">${{w.name}}</b> <span style="font-size:13px;color:#7f8c8d;">(Yếu tố: <i>${{w.triggers}}</i>)</span>${{descHtml}}`;
+                        if (!warning_groups[w.category]) warning_groups[w.category] = [];
+                        var descHtml = w.desc ? `<br><span style="color:#555;">${{w.desc}}</span>` : "";
+                        var line = `<b style="color:#222;">${{w.name}}</b> <span style="font-size:13px;color:#777;">(<i>${{w.triggers}}</i>)</span>${{descHtml}}`;
                         warning_groups[w.category].push(line);
                         has_warnings = true;
                     }}
@@ -340,55 +447,48 @@ def get_bazi_html(year, month, day, hour, minute, gender):
             targets.forEach(posB => {{
                 var charB = state[posB];
                 var labelB = posLabels[posB];
-
-                var relCategory = "";
-                var relLabel = "";
+                var relCategory = ""; var relLabel = "";
 
                 if (typeA === 'GAN') {{
-                    if (stem_clash[charA] === charB) {{ relCategory = "Xung"; relLabel = "Xung"; }}
-                    if (stem_combo[charA] === charB) {{ relCategory = "Hợp"; relLabel = "Lục Hợp"; }}
+                    if (stem_clash[charA] === charB) relLabel = "Xung";
+                    if (stem_combo[charA] === charB) relLabel = "Lục Hợp";
                 }}
                 else if (typeA === 'ZHI') {{
-                    if (branch_clash[charA] === charB) {{ relCategory = "Xung"; relLabel = "Xung"; }}
-                    if (branch_combo6[charA] === charB) {{ relCategory = "Hợp"; relLabel = "Lục Hợp"; }}
-                    if (branch_combo3[charA] && branch_combo3[charA].includes(charB)) {{ relCategory = "Hợp"; relLabel = "Tam Hợp"; }}
-                    if (branch_harm[charA] === charB) {{ relCategory = "Hại/Hình"; relLabel = "Hại"; }}
-                    if (branch_punish[charA] && branch_punish[charA].includes(charB)) {{ relCategory = "Hại/Hình"; relLabel = "Hình"; }}
+                    if (branch_clash[charA] === charB) relLabel = "Xung";
+                    if (branch_combo6[charA] === charB) relLabel = "Lục Hợp";
+                    if (branch_combo3[charA] && branch_combo3[charA].includes(charB)) relLabel = "Tam Hợp";
+                    if (branch_harm[charA] === charB) relLabel = "Hại";
+                    if (branch_punish[charA] && branch_punish[charA].includes(charB)) relLabel = "Hình";
                 }}
 
-                if (relCategory !== "") {{
+                if (relLabel !== "") {{
                     rel_lines.push(`<b>${{charA}}</b> - <b>${{charB}}</b> &nbsp;&nbsp; ${{relLabel}} &nbsp;&nbsp; (${{labelB}})`);
                 }}
             }});
 
             var container = document.getElementById('interaction_container');
             var relBox = document.getElementById('rel_box');
-
             var warnContent = document.getElementById('warning_content');
             var warnWrapper = document.getElementById('warning_wrapper');
             var toggleWarnBtn = document.getElementById('toggle_warning_btn');
 
             if (rel_lines.length > 0) {{
-                var relHtml = `<b>🔗 Mối Quan Hệ của "${{charA}}" (${{posLabels[posA]}}):</b>`;
-                relHtml += `<ul>` + rel_lines.map(r => `<li class="rel-item">${{r}}</li>`).join('') + `</ul>`;
-                relBox.innerHTML = relHtml;
+                relBox.innerHTML = `<b>${{charA}} (${{posLabels[posA]}}):</b><ul>` + rel_lines.map(r => `<li class="rel-item">${{r}}</li>`).join('') + `</ul>`;
                 relBox.style.display = 'block';
-
             }} else {{
-                relBox.innerHTML = `<b>🔗 Mối Quan Hệ của "${{charA}}" (${{posLabels[posA]}}):</b><br><i style="color:gray; margin-left: 20px;">Không có tương tác nào thoả mãn.</i>`;
+                relBox.innerHTML = `<b>${{charA}} (${{posLabels[posA]}}):</b><br><i style="color:gray; margin-left: 10px;">Không có tương tác.</i>`;
                 relBox.style.display = 'block';
             }}
 
             if (has_warnings) {{
                 var warnHtml = "";
                 for (var cat in warning_groups) {{
-                    warnHtml += `<div style="margin-top: 15px; margin-bottom: 5px; padding-bottom: 3px; border-bottom: 2px solid #e74c3c; display: inline-block; font-size: 16px; font-weight: bold; color: #c0392b; text-transform: uppercase;">🔹 ${{cat}}</div>`;
+                    warnHtml += `<div style="margin-top: 15px; margin-bottom: 5px; padding-bottom: 3px; border-bottom: 2px solid #555; display: inline-block; font-size: 15px; font-weight: bold; color: #333; text-transform: uppercase;">${{cat}}</div>`;
                     warnHtml += `<ul>` + warning_groups[cat].map(w => `<li class="warn-item">${{w}}</li>`).join('') + `</ul>`;
                 }}
                 warnContent.innerHTML = warnHtml;
-
                 warnContent.style.display = 'none';
-                toggleWarnBtn.innerHTML = '⚠️ Chú Ý ▼';
+                toggleWarnBtn.innerHTML = 'Chú Ý ▼';
                 warnWrapper.style.display = 'block';
             }} else {{
                 warnWrapper.style.display = 'none';
@@ -399,17 +499,12 @@ def get_bazi_html(year, month, day, hour, minute, gender):
 
         function loadDir(char) {{
             var isStem = (S_EL[char] !== undefined);
-            state.DIR_GAN = isStem ? char : null;
-            state.DIR_ZHI = isStem ? null : char;
-
             var isBagua = (BG_EL[char] !== undefined);
-            if (isBagua) {{
-                state.DIR_GAN = null;
-                state.DIR_ZHI = char;
-            }}
+            
+            state.DIR_GAN = (isStem && !isBagua) ? char : null;
+            state.DIR_ZHI = (!isStem || isBagua) ? char : null;
 
-            document.getElementById('dir_main_g').innerHTML = (isStem && !isBagua) ? getColoredChar(char, 'DIR_GAN') + `<span class="ss-text">${{calcSS(char)}}</span>` : '';
-            document.getElementById('dir_main_z').innerHTML = (!isStem || isBagua) ? getColoredChar(char, 'DIR_ZHI') + `<span class="ss-text">${{calcSS(char)}}</span>` : '';
+            renderBoard();
             document.getElementById('interaction_container').style.display = 'none';
         }}
 
@@ -426,14 +521,16 @@ def get_bazi_html(year, month, day, hour, minute, gender):
             ['col_ln', 'ln_main_g', 'ln_main_z', 'col_lm', 'lm_main_g', 'lm_main_z'].forEach(id => document.getElementById(id).style.display = 'none');
 
             document.getElementById('dy_title').innerHTML = 'Đại Vận';
-            document.getElementById('dy_main_g').innerHTML = getColoredChar(d.gan, 'DY_GAN') + `<span class="ss-text">${{calcSS(d.gan)}}</span>`;
-            document.getElementById('dy_main_z').innerHTML = getColoredChar(d.zhi, 'DY_ZHI') + `<span class="ss-text">${{calcSS(d.zhi)}}</span>`;
 
             var lnHtml = "<b>Chọn Lưu Niên: </b><br>";
-            d.lns.forEach((ln, idx) => {{ lnHtml += `<div class="ln-btn" onclick="loadLN('${{dyKey}}', ${{idx}})">${{ln.year}}<br>${{ln.gan}}${{ln.zhi}}</div>`; }});
+            d.lns.forEach((ln, idx) => {{ 
+                lnHtml += `<div class="ln-btn" onclick="loadLN('${{dyKey}}', ${{idx}})">${{ln.year}}<br>${{ln.gan}}${{ln.zhi}}</div>`; 
+            }});
             document.getElementById('ln_container').innerHTML = lnHtml;
             document.getElementById('lm_container').style.display = 'none';
             document.getElementById('interaction_container').style.display = 'none';
+            
+            renderBoard();
         }}
 
         function loadLN(dyKey, lnIdx) {{
@@ -445,23 +542,36 @@ def get_bazi_html(year, month, day, hour, minute, gender):
             ['col_lm', 'lm_main_g', 'lm_main_z'].forEach(id => document.getElementById(id).style.display = 'none');
 
             document.getElementById('ln_title').innerHTML = 'Năm ' + ln.year;
-            document.getElementById('ln_main_g').innerHTML = getColoredChar(ln.gan, 'LN_GAN') + `<span class="ss-text">${{calcSS(ln.gan)}}</span>`;
-            document.getElementById('ln_main_z').innerHTML = getColoredChar(ln.zhi, 'LN_ZHI') + `<span class="ss-text">${{calcSS(ln.zhi)}}</span>`;
             document.getElementById('interaction_container').style.display = 'none';
 
             var yearStemIdx = stems_arr.indexOf(ln.gan);
             var startStemIdx = ((yearStemIdx % 5) * 2 + 2) % 10;
-            var lmHtml = "<b>Chọn Lưu Nguyệt (Tháng): </b><br>";
+            var lmHtml = "<b>Chọn Lưu Nguyệt: </b><br>";
+
+            var targetLmZhi = "{active_lm_branch}";
+            var foundLmGan = null;
 
             for (var i = 0; i < 12; i++) {{
                 var mGan = stems_arr[(startStemIdx + i) % 10];
                 var mZhi = month_branches_arr[i];
-                // YÊU CẦU: Bỏ chữ Tháng đi, chỉ để Can Chi
-                lmHtml += `<div class="lm-btn" onclick="loadLM('${{mGan}}', '${{mZhi}}', ${{i+1}})">${{mGan}}${{mZhi}}</div>`;
+                var monthNum = branchToMonth[mZhi];
+                lmHtml += `<div class="lm-btn" onclick="loadLM('${{mGan}}', '${{mZhi}}', ${{monthNum}})">${{mGan}}${{mZhi}}</div>`;
+                
+                if (mZhi === targetLmZhi) foundLmGan = mGan;
             }}
 
             document.getElementById('lm_container').innerHTML = lmHtml;
             document.getElementById('lm_container').style.display = 'block';
+            
+            renderBoard();
+
+            // Auto-load LM lần đầu
+            if (!initialAutoLoadDone && foundLmGan && targetLmZhi) {{
+                setTimeout(() => {{
+                    loadLM(foundLmGan, targetLmZhi, branchToMonth[targetLmZhi]);
+                    initialAutoLoadDone = true; 
+                }}, 50);
+            }}
         }}
 
         function loadLM(mGan, mZhi, monthNum) {{
@@ -469,13 +579,39 @@ def get_bazi_html(year, month, day, hour, minute, gender):
             ['col_lm', 'lm_main_g', 'lm_main_z'].forEach(id => document.getElementById(id).style.display = 'table-cell');
 
             document.getElementById('lm_title').innerHTML = 'Tháng ' + monthNum;
-            document.getElementById('lm_main_g').innerHTML = getColoredChar(mGan, 'LM_GAN') + `<span class="ss-text">${{calcSS(mGan)}}</span>`;
-            document.getElementById('lm_main_z').innerHTML = getColoredChar(mZhi, 'LM_ZHI') + `<span class="ss-text">${{calcSS(mZhi)}}</span>`;
             document.getElementById('interaction_container').style.display = 'none';
+            
+            renderBoard();
         }}
+        
+        window.onload = function() {{
+            renderBoard(); // Khởi tạo bảng ngay khi load
+            
+            // Auto Load theo thời gian hiện tại
+            var actDy = "{active_dy_idx}";
+            var actLn = "{active_ln_idx}";
+            if (actDy !== "-1") {{
+                setTimeout(() => {{
+                    loadDY("dy_" + actDy);
+                    if (actLn !== "-1") {{
+                        setTimeout(() => {{
+                            loadLN("dy_" + actDy, parseInt(actLn));
+                        }}, 50);
+                    }} else {{
+                        initialAutoLoadDone = true;
+                    }}
+                }}, 50);
+            }} else {{
+                initialAutoLoadDone = true;
+            }}
+        }};
     </script>
 
     <div class="bazi-box">
+        
+        <!-- Bảng Tóm tắt Dụng/Kị Thần -->
+        <div id="yongji_summary" class="yj-summary"></div>
+
         <table class="bz-tbl">
             <tr>
                 <th class="pillar-col">Năm</th><th class="pillar-col">Tháng</th><th class="pillar-col">Ngày</th><th class="pillar-col">Giờ</th>
@@ -487,10 +623,10 @@ def get_bazi_html(year, month, day, hour, minute, gender):
                 <th id="col_dir" class="pillar-col">Hướng</th>
             </tr>
             <tr>
-                <td class="main-cell">{get_c_char(y_stem, 'Y_GAN')}<span class="ss-text">{get_shishen(d_stem, y_stem)}</span></td>
-                <td class="main-cell">{get_c_char(m_stem, 'M_GAN')}<span class="ss-text">{get_shishen(d_stem, m_stem)}</span></td>
-                <td class="main-cell"><span class="dm-hl">{get_c_char(d_stem, 'D_GAN')}</span>{dm_special_html}</td>
-                <td class="main-cell">{get_c_char(h_stem, 'H_GAN')}<span class="ss-text">{get_shishen(d_stem, h_stem)}</span></td>
+                <td class="main-cell" id="y_gan_cell"></td>
+                <td class="main-cell" id="m_gan_cell"></td>
+                <td class="main-cell" id="d_gan_cell"></td>
+                <td class="main-cell" id="h_gan_cell"></td>
                 <td class="spacer-col" id="spacer1_g"></td>
                 <td id="dy_main_g" class="main-cell" style="display:none;"></td>
                 <td id="ln_main_g" class="main-cell" style="display:none;"></td>
@@ -499,10 +635,10 @@ def get_bazi_html(year, month, day, hour, minute, gender):
                 <td id="dir_main_g" class="main-cell"></td>
             </tr>
             <tr>
-                <td class="main-cell">{get_c_char(y_branch, 'Y_ZHI')}<span class="ss-text">{get_shishen(d_stem, y_branch)}</span></td>
-                <td class="main-cell">{get_c_char(m_branch, 'M_ZHI')}<span class="ss-text">{get_shishen(d_stem, m_branch)}</span></td>
-                <td class="main-cell">{get_c_char(d_branch, 'D_ZHI')}<span class="ss-text">{get_shishen(d_stem, d_branch)}</span></td>
-                <td class="main-cell">{get_c_char(h_branch, 'H_ZHI')}<span class="ss-text">{get_shishen(d_stem, h_branch)}</span></td>
+                <td class="main-cell" id="y_zhi_cell"></td>
+                <td class="main-cell" id="m_zhi_cell"></td>
+                <td class="main-cell" id="d_zhi_cell"></td>
+                <td class="main-cell" id="h_zhi_cell"></td>
                 <td class="spacer-col" id="spacer1_z"></td>
                 <td id="dy_main_z" class="main-cell" style="display:none;"></td>
                 <td id="ln_main_z" class="main-cell" style="display:none;"></td>
@@ -515,24 +651,23 @@ def get_bazi_html(year, month, day, hour, minute, gender):
         <!-- KHU VỰC HIỂN THỊ TƯƠNG TÁC -->
         <div id="interaction_container" style="display:none; margin-top:20px;">
             <div id="rel_box" class="rel-box"></div>
-
             <div id="warning_wrapper" style="margin-top:10px; display:none;">
-                <button id="toggle_warning_btn" class="toggle-warn-btn" onclick="toggleWarning()">⚠️ Chú Ý ▼</button>
+                <button id="toggle_warning_btn" class="toggle-warn-btn" onclick="toggleWarning()">Chú Ý ▼</button>
                 <div id="warning_content" class="warn-box" style="margin-top:5px; display:none;"></div>
             </div>
         </div>
 
         <!-- BẢNG CHỌN LUẬN ĐOÁN TĨNH -->
         <div class="ld-box">
-            <h4 style="margin-top:0; margin-bottom:10px; color:#2c3e50;">📖 Phong Thủy</h4>
-            <select id="ld_select" style="padding:6px; font-size:15px; width:100%; max-width:350px; border-radius:4px; border:1px solid #ccc; cursor: pointer;" onchange="updateLuandoan()">
+            <div class="section-title">Phong Thủy</div>
+            <select id="ld_select" style="padding:6px; font-size:14px; width:100%; max-width:350px; border-radius:4px; border:1px solid #ccc; cursor: pointer;" onchange="updateLuandoan()">
                 {ld_options}
             </select>
-            <div id="ld_content" style="margin-top:15px; display:none; background:#fff; padding:12px; border-radius:4px; border:1px solid #eee;">
+            <div id="ld_content" style="margin-top:15px; display:none; background:#fff; padding:12px; border-radius:4px; border:1px solid #ddd;">
             </div>
         </div>
 
-        <h4 style="margin-top:20px; border-bottom:1px solid #ccc; padding-bottom:5px;">⏳ Chọn Đại Vận:</h4>
+        <div class="section-title" style="margin-top:20px;">Chọn Đại Vận:</div>
         <div>
     """
     for i, dy in enumerate(da_yuns[1:9]):
@@ -541,14 +676,14 @@ def get_bazi_html(year, month, day, hour, minute, gender):
 
     html_content += f"""
         </div>
-        <div id="ln_container" style="margin-top:15px; padding:10px; border:1px dashed #0066cc; background:#f9f9f9; min-height:50px;">
-            <i>(Vui lòng chọn 1 Đại vận phía trên để xem Lưu Niên tương ứng)</i>
+        <div id="ln_container" style="margin-top:15px; padding:10px; border:1px solid #ccc; background:#f9f9f9; min-height:50px;">
+            <i>(Vui lòng chọn Đại vận để xem Lưu Niên)</i>
         </div>
 
-        <div id="lm_container" style="margin-top:15px; padding:10px; border:1px dashed #9b59b6; background:#f4ecf7; display:none;">
+        <div id="lm_container" style="margin-top:15px; padding:10px; border:1px solid #ccc; background:#f9f9f9; display:none;">
         </div>
 
-        <div id="dir_container" style="margin-top:15px; padding:10px; border:1px dashed #e67e22; background:#fdf2e9;">
+        <div id="dir_container" style="margin-top:15px; padding:10px; border:1px solid #ccc; background:#f9f9f9;">
             <b>Chọn Hướng: </b><br>
             {dir_html}
         </div>
@@ -561,7 +696,6 @@ def get_bazi_html(year, month, day, hour, minute, gender):
 # ==========================================
 st.title("Phân Tích Bát Tự")
 
-# Bố cục hàng ngang cho các tùy chọn nhập liệu
 col1, col2, col3, col4, col5, col6, col7 = st.columns([1.5, 1, 1, 1, 1, 1.5, 1.5])
 
 with col1:
@@ -578,7 +712,7 @@ with col6:
     gender_str = st.selectbox("Giới tính:", ["Nam", "Nữ"], index=0)
     gender_val = 1 if gender_str == "Nam" else 0
 with col7:
-    st.write("") # Dùng để canh nút bấm xuống cho đều
+    st.write("") 
     st.write("")
     calc_button = st.button("Tính Bát Tự", type="primary", use_container_width=True)
 
@@ -587,10 +721,6 @@ st.divider()
 # ==========================================
 # 4. RENDER HTML TÍNH TOÁN RA STREAMLIT
 # ==========================================
-
-# Mặc định load khi vào app lần đầu hoặc khi bấm nút
 html_string = get_bazi_html(year_val, month_val, day_val, hour_val, min_val, gender_val)
 
-# Sử dụng chuẩn của bạn (st.components.v1.html)
-# Để chiều cao height=900 và scrolling=True để đủ chỗ khi bảng thông tin xổ xuống
-components.html(html_string, height=1000, scrolling=True)
+components.html(html_string, height=1050, scrolling=True)
