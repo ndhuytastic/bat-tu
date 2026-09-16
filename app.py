@@ -8,7 +8,7 @@ from lunar_python import Lunar, Solar, EightChar
 from datetime import datetime
 
 # Cài đặt giao diện trang
-st.set_page_config(page_title="Bát Tự", layout="wide")
+st.set_page_config(page_title="Bát Tự Trụ Cột", layout="wide")
 
 # ==========================================
 # 1. TẢI DỮ LIỆU TỪ GOOGLE SHEETS
@@ -124,8 +124,6 @@ def get_bazi_html(year, month, day, hour, minute, gender):
     <style>
         .bazi-box {{ font-family: Arial, sans-serif; max-width: 1050px; margin: auto; padding: 15px; border: 1px solid #ddd; border-radius: 8px; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.05); color: #333; }}
         
-        .yj-summary {{ margin-bottom: 15px; padding: 12px; background: #f9f9f9; border: 1px solid #e0e0e0; border-radius: 4px; font-size: 14px; line-height: 1.5; }}
-        
         .bz-tbl {{ width: 100%; border-collapse: collapse; table-layout: fixed; text-align: center; margin-top: 5px; }}
         .bz-tbl th, .bz-tbl td {{ border: 1px solid #ddd; padding: 5px; }}
         .bz-tbl th {{ background: #f4f4f4; font-size: 14px; font-weight: bold; color: #444; }}
@@ -174,7 +172,8 @@ def get_bazi_html(year, month, day, hour, minute, gender):
 
         var dm_stem = "{d_stem}";
         
-        var branchToMonth = {'寅':2, '卯':3, '辰':4, '巳':5, '午':6, '未':7, '申':8, '酉':9, '戌':10, '亥':11, '子':12, '丑':1};
+        // Cập nhật tháng Dương Lịch chuẩn xác
+        var branchToMonth = {{'寅':2, '卯':3, '辰':4, '巳':5, '午':6, '未':7, '申':8, '酉':9, '戌':10, '亥':11, '子':12, '丑':1}};
 
         var stem_clash = {{'甲':'庚', '庚':'甲', '乙':'辛', '辛':'乙', '丙':'壬', '壬':'丙', '丁':'癸', '癸':'丁'}};
         var stem_combo = {{'甲':'己', '己':'甲', '乙':'庚', '庚':'乙', '丙':'辛', '辛':'丙', '丁':'壬', '壬':'丁', '戊':'癸', '癸':'戊'}};
@@ -298,7 +297,7 @@ def get_bazi_html(year, month, day, hour, minute, gender):
             let el = S_EL[char] || B_EL[char] || BG_EL[char];
             let status = currentYongJi.statuses ? currentYongJi.statuses[el] : 'Dụng';
             
-            // Gán màu sắc: Dụng (Đỏ), Kỵ (Đen), Tiếp cận (Vàng sậm để dễ đọc trên nền trắng)
+            // Dụng(Đỏ), Kỵ(Đen), Tiếp cận(Vàng sậm)
             let color = "#cc0000"; 
             if (status === 'Kỵ') color = "#000000";
             else if (status === 'Tiếp Cận') color = "#d4ac0d"; 
@@ -312,11 +311,15 @@ def get_bazi_html(year, month, day, hour, minute, gender):
             // Render 4 Trụ (Nguyên Mệnh)
             ['Y', 'M', 'D', 'H'].forEach(p => {{
                 let gan = state[p+'_GAN']; let zhi = state[p+'_ZHI'];
-                document.getElementById(p.toLowerCase() + '_gan_cell').innerHTML = getColoredChar(gan, p+'_GAN') + `<span class="ss-text">${{calcSS(gan)}}</span>`;
+                
+                // Ẩn hiển thị Thập thần ở Trụ Ngày (p === 'D')
+                let gan_ss = (p === 'D') ? "" : `<span class="ss-text">${{calcSS(gan)}}</span>`;
+                
+                document.getElementById(p.toLowerCase() + '_gan_cell').innerHTML = getColoredChar(gan, p+'_GAN') + gan_ss;
                 document.getElementById(p.toLowerCase() + '_zhi_cell').innerHTML = getColoredChar(zhi, p+'_ZHI') + `<span class="ss-text">${{calcSS(zhi)}}</span>`;
             }});
 
-            // Ký tự đặc biệt cho Nhật Chủ Mậu / Kỷ
+            // Ký tự đặc biệt cho Nhật Chủ Mậu / Kỷ (Vẫn giữ nguyên)
             let dmSpecial = "";
             if (state.D_GAN === '戊') {{
                 if (['申','子','辰'].includes(state.D_ZHI)) dmSpecial = "辰";
@@ -325,6 +328,7 @@ def get_bazi_html(year, month, day, hour, minute, gender):
                 if (['卯','巳','未'].includes(state.D_ZHI)) dmSpecial = "未";
                 else if (['酉','亥','丑'].includes(state.D_ZHI)) dmSpecial = "丑";
             }}
+            
             if (dmSpecial) {{
                 document.getElementById('d_gan_cell').innerHTML += `<span class="ss-text" style="color: #555;">${{dmSpecial}}</span>`;
             }}
@@ -567,7 +571,7 @@ def get_bazi_html(year, month, day, hour, minute, gender):
         }}
         
         window.onload = function() {{
-            renderBoard(); // Khởi tạo bảng ngay khi load
+            renderBoard(); 
             
             // Auto Load theo thời gian hiện tại
             var actDy = "{active_dy_idx}";
@@ -590,8 +594,6 @@ def get_bazi_html(year, month, day, hour, minute, gender):
     </script>
 
     <div class="bazi-box">
-        
-
         <table class="bz-tbl">
             <tr>
                 <th class="pillar-col">Năm</th><th class="pillar-col">Tháng</th><th class="pillar-col">Ngày</th><th class="pillar-col">Giờ</th>
