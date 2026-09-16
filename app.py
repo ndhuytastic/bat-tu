@@ -278,24 +278,23 @@ def get_bazi_html(year, month, day, hour, minute, gender):
             else if (totalChars === 14) threshold = 5;
 
             let result = {{}};
-            for (let el in elementRawCounts) {
+            for (let el in elementRawCounts) {{
                 let raw = elementRawCounts[el];
                 let score = elementScores[el];
 
-                if (totalChars <= 10) {
+                if (totalChars <= 10) {{
                      if (raw >= threshold) result[el] = 'Kỵ';
                      else result[el] = 'Dụng';
-                } else {
+                }} else {{
                      if (raw < threshold) result[el] = 'Dụng';
                      else if (raw >= threshold && score >= threshold) result[el] = 'Kỵ';
                      else if (raw >= threshold && score < threshold) result[el] = 'Tiếp Cận';
-                }
-            }
+                }}
             }}
             return {{ statuses: result, totalChars: totalChars, raw: elementRawCounts, score: elementScores, threshold: threshold }};
         }}
 
-        function getColoredChar(char, pos) {
+        function getColoredChar(char, pos) {{
             if (!char) return "";
             let el = S_EL[char] || B_EL[char] || BG_EL[char];
             let status = currentYongJi.statuses ? currentYongJi.statuses[el] : 'Dụng';
@@ -305,8 +304,8 @@ def get_bazi_html(year, month, day, hour, minute, gender):
             if (status === 'Kỵ') color = "#000000";
             else if (status === 'Tiếp Cận') color = "#d4ac0d"; 
             
-            return `<span class="hanzi interactive" style="color: ${color};" onclick="checkRel('${pos}')">${char}</span>`;
-        }
+            return `<span class="hanzi interactive" style="color: ${{color}};" onclick="checkRel('${{pos}}')">${{char}}</span>`;
+        }}
 
         function renderYongJiSummary() {{
             let dung = []; let ky = []; let tiep = [];
