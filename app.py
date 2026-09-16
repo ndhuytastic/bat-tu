@@ -780,7 +780,6 @@ def get_bazi_html(year, month, day, hour, minute, gender):
 # ==========================================
 # 3. GIAO DIỆN NHẬP LIỆU BẰNG STREAMLIT
 # ==========================================
-st.title("八字")
 
 col1, col2, col3, col4, col5, col6, col7 = st.columns([1.5, 1, 1, 1, 1, 1.5, 1.5])
 
