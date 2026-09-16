@@ -545,7 +545,7 @@ def get_bazi_html(year, month, day, hour, minute, gender):
                 relBox.innerHTML = rHtml;
                 relBox.style.display = 'block';
             }} else {{
-                relBox.innerHTML = `<b>${{charA}} (${{posLabels[posA]}}):</b><br><i style="color:gray; margin-left: 10px;">Không có tương tác.</i>`;
+                relBox.innerHTML = `<b>${{charA}} (${{posLabels[posA]}}):</b><br><i style="color:gray; margin-left: 10px;"></i>`;
                 relBox.style.display = 'block';
             }}
 
