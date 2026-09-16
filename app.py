@@ -8,7 +8,7 @@ from lunar_python import Lunar, Solar, EightChar
 from datetime import datetime
 
 # Cài đặt giao diện trang
-st.set_page_config(page_title="Bát Tự Trụ Cột", layout="wide")
+st.set_page_config(page_title="Bát Tự", layout="wide")
 
 # ==========================================
 # 1. TẢI DỮ LIỆU TỪ GOOGLE SHEETS
@@ -780,7 +780,7 @@ def get_bazi_html(year, month, day, hour, minute, gender):
 # ==========================================
 # 3. GIAO DIỆN NHẬP LIỆU BẰNG STREAMLIT
 # ==========================================
-st.title("Phân Tích Bát Tự")
+st.title("八字")
 
 col1, col2, col3, col4, col5, col6, col7 = st.columns([1.5, 1, 1, 1, 1, 1.5, 1.5])
 
