@@ -8,7 +8,7 @@ from lunar_python import Lunar, Solar, EightChar
 from datetime import datetime
 
 # Cài đặt giao diện trang
-st.set_page_config(page_title="Bát Tự Trụ Cột", layout="wide")
+st.set_page_config(page_title="Bát Tự", layout="wide")
 
 # ==========================================
 # 1. TẢI DỮ LIỆU TỪ GOOGLE SHEETS
@@ -174,7 +174,7 @@ def get_bazi_html(year, month, day, hour, minute, gender):
 
         var dm_stem = "{d_stem}";
         
-        var branchToMonth = {{'寅':1, '卯':2, '辰':3, '巳':4, '午':5, '未':6, '申':7, '酉':8, '戌':9, '亥':10, '子':11, '丑':12}};
+        var branchToMonth = {'寅':2, '卯':3, '辰':4, '巳':5, '午':6, '未':7, '申':8, '酉':9, '戌':10, '亥':11, '子':12, '丑':1};
 
         var stem_clash = {{'甲':'庚', '庚':'甲', '乙':'辛', '辛':'乙', '丙':'壬', '壬':'丙', '丁':'癸', '癸':'丁'}};
         var stem_combo = {{'甲':'己', '己':'甲', '乙':'庚', '庚':'乙', '丙':'辛', '辛':'丙', '丁':'壬', '壬':'丁', '戊':'癸', '癸':'戊'}};
@@ -278,54 +278,43 @@ def get_bazi_html(year, month, day, hour, minute, gender):
             else if (totalChars === 14) threshold = 5;
 
             let result = {{}};
-            for (let el in elementRawCounts) {{
+            for (let el in elementRawCounts) {
                 let raw = elementRawCounts[el];
                 let score = elementScores[el];
 
-                if (totalChars <= 10) {{
+                if (totalChars <= 10) {
                      if (raw >= threshold) result[el] = 'Kỵ';
                      else result[el] = 'Dụng';
-                }} else {{
-                     // Quy tắc tiếp cận Kị Thần cho LN, LM
+                } else {
                      if (raw < threshold) result[el] = 'Dụng';
                      else if (raw >= threshold && score >= threshold) result[el] = 'Kỵ';
                      else if (raw >= threshold && score < threshold) result[el] = 'Tiếp Cận';
-                }}
-            }}
+                }
+            }
+
             return {{ statuses: result, totalChars: totalChars, raw: elementRawCounts, score: elementScores, threshold: threshold }};
         }}
 
-        function getColoredChar(char, pos) {{
+        function getColoredChar(char, pos) {
             if (!char) return "";
             let el = S_EL[char] || B_EL[char] || BG_EL[char];
             let status = currentYongJi.statuses ? currentYongJi.statuses[el] : 'Dụng';
             
-            // Dụng Thần màu Đỏ, Kị Thần và Tiếp Cận Kị Thần màu Đen
-            let color = (status === 'Dụng') ? "#cc0000" : "#000000";
+            // Gán màu sắc: Dụng (Đỏ), Kỵ (Đen), Tiếp cận (Vàng sậm)
+            let color = "#cc0000"; 
+            if (status === 'Kỵ') color = "#000000";
+            else if (status === 'Tiếp Cận') color = "#d4ac0d"; 
             
-            return `<span class="hanzi interactive" style="color: ${{color}};" onclick="checkRel('${{pos}}')">${{char}}</span>`;
-        }}
+            return `<span class="hanzi interactive" style="color: ${color};" onclick="checkRel('${pos}')">${char}</span>`;
+        }
 
         function renderYongJiSummary() {{
             let dung = []; let ky = []; let tiep = [];
-            for (let el in currentYongJi.statuses) {{
-                if (currentYongJi.statuses[el] === 'Dụng') dung.push(el);
-                else if (currentYongJi.statuses[el] === 'Kỵ') ky.push(el);
-                else if (currentYongJi.statuses[el] === 'Tiếp Cận') tiep.push(el);
-            }}
-
-            let html = `<b>Tình trạng Ngũ Hành:</b> Đang xét <b>${{currentYongJi.totalChars}}</b> chữ (Ngưỡng Kị thần: <b>&ge;${{currentYongJi.threshold}}</b>)<br>`;
-            html += `<span style="color: #cc0000; font-weight: bold;">Dụng Thần:</span> ${{dung.length ? dung.join(', ') : 'Không có'}}<br>`;
-            html += `<span style="color: #000000; font-weight: bold;">Kị Thần:</span> ${{ky.length ? ky.join(', ') : 'Không có'}}<br>`;
-            if (tiep.length > 0) {{
-                html += `<span style="color: #000000; font-weight: bold;">Tiếp Cận Kị Thần:</span> ${{tiep.join(', ')}} <i>(Bị trừ điểm trùng lặp nên chưa bùng phát)</i>`;
-            }}
             document.getElementById('yongji_summary').innerHTML = html;
         }}
 
         function renderBoard() {{
             currentYongJi = evaluateElements();
-            renderYongJiSummary();
 
             // Render 4 Trụ (Nguyên Mệnh)
             ['Y', 'M', 'D', 'H'].forEach(p => {{
@@ -488,7 +477,7 @@ def get_bazi_html(year, month, day, hour, minute, gender):
                 }}
                 warnContent.innerHTML = warnHtml;
                 warnContent.style.display = 'none';
-                toggleWarnBtn.innerHTML = 'Chú Ý ▼';
+                toggleWarnBtn.innerHTML = 'Tuyến Khí ▼';
                 warnWrapper.style.display = 'block';
             }} else {{
                 warnWrapper.style.display = 'none';
@@ -609,8 +598,6 @@ def get_bazi_html(year, month, day, hour, minute, gender):
 
     <div class="bazi-box">
         
-        <!-- Bảng Tóm tắt Dụng/Kị Thần -->
-        <div id="yongji_summary" class="yj-summary"></div>
 
         <table class="bz-tbl">
             <tr>
@@ -652,7 +639,7 @@ def get_bazi_html(year, month, day, hour, minute, gender):
         <div id="interaction_container" style="display:none; margin-top:20px;">
             <div id="rel_box" class="rel-box"></div>
             <div id="warning_wrapper" style="margin-top:10px; display:none;">
-                <button id="toggle_warning_btn" class="toggle-warn-btn" onclick="toggleWarning()">Chú Ý ▼</button>
+                <button id="toggle_warning_btn" class="toggle-warn-btn" onclick="toggleWarning()">Tuyến Khí ▼</button>
                 <div id="warning_content" class="warn-box" style="margin-top:5px; display:none;"></div>
             </div>
         </div>
