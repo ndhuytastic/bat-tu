@@ -291,7 +291,7 @@ def get_bazi_html(year, month, day, hour, minute, gender):
                      else if (raw >= threshold && score < threshold) result[el] = 'Tiếp Cận';
                 }
             }
-
+            }}
             return {{ statuses: result, totalChars: totalChars, raw: elementRawCounts, score: elementScores, threshold: threshold }};
         }}
 
