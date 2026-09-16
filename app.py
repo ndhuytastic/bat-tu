@@ -221,6 +221,7 @@ def get_bazi_html(year, month, day, hour, minute, gender):
 
         var currentYongJi = {{}}; 
         var initialAutoLoadDone = false;
+        var activeClickPos = null; // Thêm biến này để nhớ ô đang được click
 
         function calcSS(char) {{
             if (!char) return "";
@@ -318,6 +319,7 @@ def get_bazi_html(year, month, day, hour, minute, gender):
         }}
 
         function renderBoard() {{
+            activeClickPos = null; // Reset trạng thái click khi bảng thay đổi
             currentYongJi = evaluateElements();
 
             // Render 4 Trụ (Nguyên Mệnh)
@@ -448,6 +450,17 @@ def get_bazi_html(year, month, day, hour, minute, gender):
             // Tẩy sạch highlight cũ mỗi lần click
             document.querySelectorAll('.main-cell').forEach(el => el.classList.remove('highlight-rel'));
             
+            // LOGIC BẬT/TẮT (TOGGLE)
+            if (activeClickPos === posA) {{
+                // Nếu click lại đúng ô đang mở -> Ẩn bảng đi, reset biến và kết thúc
+                document.getElementById('interaction_container').style.display = 'none';
+                activeClickPos = null;
+                return;
+            }}
+            
+            // Nếu click ô mới -> Cập nhật ô đang click và tiếp tục xử lý
+            activeClickPos = posA;
+
             var charA = state[posA];
             if (!charA) return;
 
